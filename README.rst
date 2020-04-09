@@ -1,14 +1,16 @@
 telraam_data
 =============
 
-**A friendly package to download traffic count data from the Telraam API.**
+**A friendly Python package to download traffic count data from `Telraam.net <https://telraam.net>`_.**
 
-*telraam_data* is a Python package to retrieve traffic count data from the
-`Telraam Project <https://telraam.net>`_ into `pandas.DataFrame` objects.
+The *telraam_data* package enables you to retrieve traffic count data from the
+`Telraam Project <https://telraam.net>`_ API into `pandas.DataFrame` objects.
 
 
 Installation
 ------------
+
+If you have a working version of Python on your system, you can install the package using:
 
 .. code-block:: bash
 
@@ -18,7 +20,8 @@ Installation
 Examples
 --------
 
-Download hourly traffic counts for one segment:
+Downloading hourly counts for one segment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -27,7 +30,8 @@ Download hourly traffic counts for one segment:
   data.to_excel("hourly-counts.xls")
 
 
-Download daily counts for all segments:
+Downloading daily counts for all segments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -35,7 +39,8 @@ Download daily counts for all segments:
   data.to_csv("daily-counts.csv")
 
 
-Plot weekly average counts for all segments across 2020:
+Plotting weekly average counts for all segments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -48,7 +53,6 @@ Plot weekly average counts for all segments across 2020:
 Notes
 -----
 
-This is a third-party package not officially affiliated with the Telraam project.
-The Telraam API is documented at `<https://telraam-api.net>`_.
-
-Telraam's data is made available under the CC BY 4.0 license. Thanks Telraam!
+* This is a third-party package not officially affiliated with the Telraam project.
+* The Telraam API is documented at `<https://telraam-api.net>`_.
+* Telraam's data is made available under the CC BY 4.0 license. Thanks Telraam!
