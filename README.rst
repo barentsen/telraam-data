@@ -1,10 +1,10 @@
-telraam_data
+telraam-data
 =============
 
 **A friendly Python package to download traffic count data from Telraam.net.**
 
 The *telraam_data* package enables you to retrieve traffic count data from the
-`Telraam Project <https://telraam.net>`_ API into `pandas.DataFrame` objects.
+`Telraam Project <https://telraam.net>`_ API into ``pandas.DataFrame`` objects.
 
 
 Examples
