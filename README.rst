@@ -47,7 +47,7 @@ If you have a working version of Python on your system, you can install the pack
 
 .. code-block:: bash
 
-  pip install telraam_data
+  pip install telraam-data
 
 
 Notes
