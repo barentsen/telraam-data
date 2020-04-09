@@ -1,20 +1,10 @@
 telraam_data
 =============
 
-**A friendly Python package to download traffic count data from `Telraam.net <https://telraam.net>`_.**
+**A friendly Python package to download traffic count data from Telraam.net.**
 
 The *telraam_data* package enables you to retrieve traffic count data from the
 `Telraam Project <https://telraam.net>`_ API into `pandas.DataFrame` objects.
-
-
-Installation
-------------
-
-If you have a working version of Python on your system, you can install the package using:
-
-.. code-block:: bash
-
-  pip install telraam_data
 
 
 Examples
@@ -48,6 +38,16 @@ Plotting weekly average counts for all segments
                           time_end="2021-01-01 00:00:00Z", fmt="per-day")
   weekly_average = data.set_index('date').resample('7D').mean() * 7
   weekly_average.plot(y=["car", "bike", "pedestrian"], marker='o')
+
+
+Installation
+------------
+
+If you have a working version of Python on your system, you can install the package using:
+
+.. code-block:: bash
+
+  pip install telraam_data
 
 
 Notes
