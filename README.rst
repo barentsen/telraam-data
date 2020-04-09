@@ -1,10 +1,10 @@
-telraam-data
+telraam_data
 =============
 
 **A friendly package to download traffic count data from the Telraam API.**
 
-*telraam_query* is a Python package to retrieve traffic count data from the
-`Telraam Project <https://telraam.net/>`_ as a Pandas DataFrame object.
+*telraam_data* is a Python package to retrieve traffic count data from the
+`Telraam Project <https://telraam.net>`_ into `pandas.DataFrame` objects.
 
 
 Installation
@@ -12,7 +12,7 @@ Installation
 
 .. code-block:: bash
 
-  pip install telraam_query
+  pip install telraam_data
 
 
 Examples
@@ -35,7 +35,7 @@ Download daily counts for all segments:
   data.to_csv("daily-counts.csv")
 
 
-Plot weekly average counts:
+Plot weekly average counts for all segments across 2020:
 
 .. code-block:: python
 
@@ -49,5 +49,6 @@ Notes
 -----
 
 This is a third-party package not officially affiliated with the Telraam project.
-The Telraam API is documented at `https://telraam-api.net`_.
-The data is made available under the CC BY 4.0 license.
+The Telraam API is documented at `<https://telraam-api.net>`_.
+
+Telraam's data is made available under the CC BY 4.0 license. Thanks Telraam!
