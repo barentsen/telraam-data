@@ -22,16 +22,16 @@ with open('requirements.txt') as f:
 tests_require = ['pytest']
 
 
-setup(name='telraam_data',
+setup(name='telraam-data',
       version=__version__,
-      description="A friendly package to download traffic count data from the Telraam API.",
+      description="A friendly package to download traffic count data from Telraam.net.",
       long_description=open('README.rst').read(),
       author='Geert Barentsen',
       author_email='geert@barentsen.be',
-      url='https://www.geert.io',
+      url='https://github.com/barentsen/telraam-data',
       license='MIT',
-      package_dir={'telraam_data': 'telraam_data'},
-      packages=['telraam_data'],
+      package_dir={'telraam-data': 'telraam_data'},
+      packages=['telraam-data'],
       install_requires=install_requires,
       setup_requires=['pytest-runner'],
       tests_require=tests_require,
