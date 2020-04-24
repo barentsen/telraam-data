@@ -1,3 +1,4 @@
-requests>=2.22.0
+requests>=2.21.0
 pandas>=1.0.1
-tqdm>=4.42.1
+tqdm>=4.40.0
+haversine>=2.2.0

@@ -1,6 +1,7 @@
 """Functions to retrieve data from the Telraam API."""
 import datetime
 
+from haversine import haversine
 import pandas as pd
 import requests
 from tqdm.auto import tqdm
@@ -9,6 +10,39 @@ from . import log
 
 
 TELRAAM_API_URL = "https://telraam-api.net/v0"
+
+
+def list_segments():
+    """Returns a list of all active Telraam segment IDs."""
+    js = _query_active_segments()
+    return list(set([segment['properties']['id'] for segment in js['features']]))
+
+
+def list_segments_by_coordinates(lat, lon, radius=10):
+    """Returns the segment IDs within `radius` kilometer from (lat, lon).
+    
+    Parameters
+    ----------
+    lat : float
+        Latitude in degrees.
+    lon : float
+        Longitude in degrees.
+    radius : float
+        Search radius in kilometer.
+
+    Returns
+    -------
+    segment_ids : list of int
+        IDs of all Telraam segments located within the search radius.
+    """
+    js = _query_active_segments()
+    result = []
+    for segment in js['features']:
+        segment_lon, segment_lat = segment['geometry']['coordinates'][0][0]
+        distance_km = haversine((lat, lon), (segment_lat, segment_lon))
+        if distance_km < radius:
+            result.append(segment['properties']['id'])
+    return result
 
 
 def download_segment(segment_id, time_start=None, time_end=None, fmt="per-day"):
@@ -29,7 +63,7 @@ def download_segment(segment_id, time_start=None, time_end=None, fmt="per-day"):
         Should counts be reported per hour or per day?
     """
     if segment_id == 'all':  # Retrieve ALL segments?
-        segment_id = _query_segment_ids()
+        segment_id = _query_active_segments()
     elif isinstance(segment_id, (str, int)):  # Ensure segment_id is iterable
         segment_id = [segment_id]
 
@@ -42,7 +76,7 @@ def download_segment(segment_id, time_start=None, time_end=None, fmt="per-day"):
 
     # Load data frames segment-by-segment
     data = []
-    for segid in tqdm(segment_id, desc="Querying segments"):
+    for segid in tqdm(segment_id, desc="Downloading Telraam segments"):
         try:
             data.append(_download_one_segment(segid, time_start, time_end, fmt))
         except IOError as e:
@@ -54,11 +88,11 @@ def download_segment(segment_id, time_start=None, time_end=None, fmt="per-day"):
 ### Helper functions
 ###
 
-def _query_segment_ids():
-    """Returns the set of all TelRaam `segment_id` values."""
-    url = f"{TELRAAM_API_URL}/cameras"
+def _query_active_segments():
+    """Radius in km"""
+    url = f"{TELRAAM_API_URL}/segments/active"
     js = requests.get(url).json()
-    return list(set([cam['segment_id'] for cam in js['cameras']]))
+    return js
 
 
 def _query_one_segment(segment_id, time_start, time_end, fmt):
