@@ -1,26 +1,40 @@
 """Functions to retrieve data from the Telraam API."""
 import datetime
 
+import pandas
 from haversine import haversine
 import pandas as pd
 import requests
 import os
 from tqdm.auto import tqdm
+from typing import List, Union, Dict
 
 from . import log
 
 
 TELRAAM_API_URL = "https://telraam-api.net/v1"
-TELRAAM_API_TOKEN = os.environ["TELRAAM_API_TOKEN"]
+ENVVAR_TELRAAM_API_TOKEN = os.environ.get("TELRAAM_API_TOKEN")
 
 
-def list_segments(api_token: str = TELRAAM_API_TOKEN):
-    """Returns a list of all active Telraam segment IDs."""
+def list_segments(api_token: str = ENVVAR_TELRAAM_API_TOKEN) -> List[int]:
+    """Returns a list of all active Telraam segment IDs.
+
+    Parameters
+    ----------
+    api_token: str
+        Your personal Telraam API token.
+        Defaults to the environment variable TELRAAM_API_TOKEN.
+    """
     js = _query_active_segments(api_token)
     return list(set([segment['properties']['id'] for segment in js['features']]))
 
 
-def list_segments_by_coordinates(lat, lon, radius=10, api_token: str = TELRAAM_API_TOKEN):
+def list_segments_by_coordinates(
+        lat: float,
+        lon: float,
+        radius: float = 10,
+        api_token: str = ENVVAR_TELRAAM_API_TOKEN
+) -> List[int]:
     """Returns the segment IDs within `radius` kilometer from (lat, lon).
     
     Parameters
@@ -31,6 +45,9 @@ def list_segments_by_coordinates(lat, lon, radius=10, api_token: str = TELRAAM_A
         Longitude in degrees.
     radius : float
         Search radius in kilometer.
+    api_token: str
+        Your personal Telraam API token.
+        Defaults to the environment variable TELRAAM_API_TOKEN.
 
     Returns
     -------
@@ -47,8 +64,14 @@ def list_segments_by_coordinates(lat, lon, radius=10, api_token: str = TELRAAM_A
     return result
 
 
-def download_segment(segment_id, time_start=None, time_end=None, fmt="per-day", api_token: str = TELRAAM_API_TOKEN):
-    """Returns a `pandas.DataFrame` with counts for one or more segments.
+def download_segment(
+        segment_id: Union[str, List[str], int, List[int]],
+        time_start: str = None,
+        time_end: str = None,
+        fmt: str = "per-day",
+        api_token: str = ENVVAR_TELRAAM_API_TOKEN
+) -> pandas.DataFrame:
+    """Returns traffic count data for one or more segments.
     
     Parameters
     ----------
@@ -63,6 +86,9 @@ def download_segment(segment_id, time_start=None, time_end=None, fmt="per-day", 
         Defaults to mignight tonight.
     fmt : "per-hour" or "per-day"
         Should counts be reported per hour or per day?
+    api_token: str
+        Your personal Telraam API token.
+        Defaults to the environment variable TELRAAM_API_TOKEN.
     """
     if segment_id == 'all':  # Retrieve ALL segments?
         segment_id = _query_active_segments(api_token)
@@ -86,23 +112,50 @@ def download_segment(segment_id, time_start=None, time_end=None, fmt="per-day", 
     return pd.concat(data)
 
 
-###
-### Helper functions
-###
+def _check_response_health(response: requests.Response) -> None:
+    if response.status_code >= 400:
+        raise IOError(f"Query failed: {response.status_code} {response.reason}")
 
 
-def _query_active_segments(api_key):
-    """Radius in km"""
+def _query_active_segments(api_token: str) -> Dict:
+    """Returns information about all active segments.
+
+    Parameters
+    ----------
+    api_token: str
+        Your personal Telraam API token.
+    """
     url = f"{TELRAAM_API_URL}/segments/active_minimal"
-    headers = {'X-Api-Key': api_key}
-    js = requests.get(url, headers=headers, data={}).json()
-    return js
+    headers = {'X-Api-Key': api_token}
+    response = requests.get(url, headers=headers, data={})
+    _check_response_health(response)
+    return response.json()
 
 
-def _query_one_segment(segment_id, time_start, time_end, fmt, api_key):
-    """Returns a `dict` for one segment."""
+def _query_one_segment(
+        segment_id: str,
+        time_start: str,
+        time_end: str,
+        fmt: str,
+        api_token: str
+) -> Dict:
+    """Returns traffic information for one segment.
+
+    Parameters
+    ----------
+    segment_id : str
+        Unique segment identifier (e.g. "1003073114").
+    time_start : str
+        Start time in "YYYY-MM-DD HH:MM:SSZ" format (e.g "2020-01-01 00:00:00Z").
+    time_end : str
+        End time in the same format as `time_start`.
+    fmt : "per-hour" or "per-day"
+        Should counts be reported per hour or per day?
+    api_token: str
+        Your personal Telraam API token.
+    """
     url = f"{TELRAAM_API_URL}/reports/traffic"
-    headers = {'X-Api-Key': api_key}
+    headers = {'X-Api-Key': api_token}
     payload = str({
         "time_start": time_start,
         "time_end": time_end,
@@ -112,14 +165,33 @@ def _query_one_segment(segment_id, time_start, time_end, fmt, api_key):
     })
     log.debug(f"Querying {url} with data: {payload}")
     response = requests.post(url, headers=headers, data=payload)
-    if response.status_code >= 400:
-        raise IOError(f"Query failed: {response.status_code} {response.reason}")
+    _check_response_health(response)
     return response.json()
 
 
-def _download_one_segment(segment_id, time_start, time_end, fmt, api_key):
-    """Returns a `pandas.DataFrame` for one segment."""
-    js = _query_one_segment(segment_id, time_start, time_end, fmt, api_key)
+def _download_one_segment(
+        segment_id: str,
+        time_start: str,
+        time_end: str,
+        fmt: str,
+        api_token: str
+) -> pandas.DataFrame:
+    """Returns information about one segment.
+
+    Parameters
+    ----------
+    segment_id : str
+        Unique segment identifier (e.g. "1003073114").
+    time_start : str
+        Start time in "YYYY-MM-DD HH:MM:SSZ" format (e.g "2020-01-01 00:00:00Z").
+    time_end : str
+        End time in the same format as `time_start`.
+    fmt : "per-hour" or "per-day"
+        Should counts be reported per hour or per day?
+    api_token: str
+        Your personal Telraam API token.
+    """
+    js = _query_one_segment(segment_id, time_start, time_end, fmt, api_token)
     n_reports = len(js['report'])
     log.debug(f"Found {n_reports} reports.")
     if n_reports == 0:
