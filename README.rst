@@ -59,6 +59,8 @@ When you have an API access token, set the corresponsing environment variable us
 
   export TELRAAM_API_TOKEN=<your access token>
 
+Now you can start using this library!
+
 Notes
 -----
 
