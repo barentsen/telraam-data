@@ -68,7 +68,6 @@ def download_segment(
         segment_id: Union[str, List[str], int, List[int]],
         time_start: str = None,
         time_end: str = None,
-        fmt: str = "per-day",
         api_token: str = ENVVAR_TELRAAM_API_TOKEN
 ) -> pandas.DataFrame:
     """Returns traffic count data for one or more segments.
@@ -84,8 +83,6 @@ def download_segment(
     time_end : str
         End time in the same format as `time_start`.
         Defaults to mignight tonight.
-    fmt : "per-hour" or "per-day"
-        Should counts be reported per hour or per day?
     api_token: str
         Your personal Telraam API token.
         Defaults to the environment variable TELRAAM_API_TOKEN.
@@ -106,7 +103,7 @@ def download_segment(
     data = []
     for segid in tqdm(segment_id, desc="Downloading Telraam segments"):
         try:
-            data.append(_download_one_segment(segid, time_start, time_end, fmt, api_token))
+            data.append(_download_one_segment(segid, time_start, time_end, api_token))
         except IOError as e:
             log.error(e)
     return pd.concat(data)
@@ -136,7 +133,6 @@ def _query_one_segment(
         segment_id: str,
         time_start: str,
         time_end: str,
-        fmt: str,
         api_token: str
 ) -> Dict:
     """Returns traffic information for one segment.
@@ -149,8 +145,6 @@ def _query_one_segment(
         Start time in "YYYY-MM-DD HH:MM:SSZ" format (e.g "2020-01-01 00:00:00Z").
     time_end : str
         End time in the same format as `time_start`.
-    fmt : "per-hour" or "per-day"
-        Should counts be reported per hour or per day?
     api_token: str
         Your personal Telraam API token.
     """
@@ -160,7 +154,7 @@ def _query_one_segment(
         "time_start": time_start,
         "time_end": time_end,
         "level": "segments",
-        "format": fmt,
+        "format": "per-hour",
         "id": segment_id
     })
     log.debug(f"Querying {url} with data: {payload}")
@@ -173,7 +167,6 @@ def _download_one_segment(
         segment_id: str,
         time_start: str,
         time_end: str,
-        fmt: str,
         api_token: str
 ) -> pandas.DataFrame:
     """Returns information about one segment.
@@ -186,12 +179,10 @@ def _download_one_segment(
         Start time in "YYYY-MM-DD HH:MM:SSZ" format (e.g "2020-01-01 00:00:00Z").
     time_end : str
         End time in the same format as `time_start`.
-    fmt : "per-hour" or "per-day"
-        Should counts be reported per hour or per day?
     api_token: str
         Your personal Telraam API token.
     """
-    js = _query_one_segment(segment_id, time_start, time_end, fmt, api_token)
+    js = _query_one_segment(segment_id, time_start, time_end, api_token)
     n_reports = len(js['report'])
     log.debug(f"Found {n_reports} reports.")
     if n_reports == 0:
