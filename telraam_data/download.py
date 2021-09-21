@@ -9,7 +9,7 @@ from tqdm.auto import tqdm
 from . import log
 
 
-TELRAAM_API_URL = "https://telraam-api.net/v0"
+TELRAAM_API_URL = "https://telraam-api.net/v1"
 
 
 def list_segments():
