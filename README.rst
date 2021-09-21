@@ -1,8 +1,6 @@
 telraam-data
 =============
 
-[![pytest](https://github.com/Duam/telraam-data/actions/workflows/pytest.yml/badge.svg)](https://github.com/Duam/telraam-data/actions/workflows/pytest.yml)
-
 **A friendly Python package to download traffic count data from Telraam.net.**
 
 The *telraam_data* package enables you to retrieve traffic count data from the
@@ -51,6 +49,14 @@ If you have a working version of Python on your system, you can install the pack
 
   pip install telraam-data
 
+Since Telraam-API v1, you need to supply an API access token in order to download data from the
+Telraam database. You can create your personal token through your online Telraam dashboard
+(even if you don't have a Telraam sensor yourself). More info at `<https://telraam-api.net>`_.
+
+When you have an API access token, set the corresponsing environment variable using
+.. code-block:: bash
+
+  export TELRAAM_API_TOKEN=<your access token>
 
 Notes
 -----
