@@ -54,6 +54,7 @@ Telraam database. You can create your personal token through your online Telraam
 (even if you don't have a Telraam sensor yourself). More info at `<https://telraam-api.net>`_.
 
 When you have an API access token, set the corresponsing environment variable using
+
 .. code-block:: bash
 
   export TELRAAM_API_TOKEN=<your access token>
