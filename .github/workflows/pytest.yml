@@ -17,6 +17,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Create and activate virtualenv
       run: virtualenv venv && source venv/bin/activate
+    - name: Install test requirements
+      run: python3 -m pip install pytest
     - name: Install package
       run: python3 -m pip install .
     - name: Run pytest
