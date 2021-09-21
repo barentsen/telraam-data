@@ -1,6 +1,8 @@
 telraam-data
 =============
 
+[![pytest](https://github.com/Duam/telraam-data/actions/workflows/pytest.yml/badge.svg)](https://github.com/Duam/telraam-data/actions/workflows/pytest.yml)
+
 **A friendly Python package to download traffic count data from Telraam.net.**
 
 The *telraam_data* package enables you to retrieve traffic count data from the
