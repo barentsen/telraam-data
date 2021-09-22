@@ -16,28 +16,34 @@ Downloading hourly counts for one segment
 .. code-block:: python
 
   from telraam_data import download_segment
-  data = download_segment(segment_id=1003073114, fmt="per-hour")
-  data.to_excel("hourly-counts.xls")
+  import openpyxl
+  data = download_segment(segment_id=9000000641)
+  data.to_excel("counts.xlsx")
 
 
-Downloading daily counts for all segments
+Downloading daily counts for multiple segments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-  data = download_segment(segment_id="all", fmt="per-day")
-  data.to_csv("daily-counts.csv")
+  from telraam_data import download_segment
+  data = download_segment(segment_id=[9000000641, 651160])
+  data.to_csv("counts.csv")
 
 
-Plotting weekly average counts for all segments
+Plotting weekly average counts for one segment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-  data = download_segment("all", time_start="2020-01-01 00:00:00Z",
-                          time_end="2021-01-01 00:00:00Z", fmt="per-day")
-  weekly_average = data.set_index('date').resample('7D').mean() * 7
+  from telraam_data import download_segment
+  import matplotlib.pyplot as plt
+  data = download_segment(9000000641,
+                          time_start="2021-01-01 00:00:00Z",
+                          time_end="2021-03-01 00:00:00Z")
+  weekly_average = data.set_index('date').resample('1D').sum().resample('7D').mean() * 7
   weekly_average.plot(y=["car", "bike", "pedestrian"], marker='o')
+  plt.plot()
 
 
 Installation
