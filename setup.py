@@ -19,7 +19,7 @@ exec(open('telraam_data/version.py').read())
 with open('requirements.txt') as f:
     install_requires = f.read().splitlines()
 # 2. What dependencies required to run the unit tests?
-tests_require = ['pytest']
+tests_require = ['pytest', 'random']
 
 
 setup(name='telraam-data',

@@ -1,15 +1,16 @@
-from .. import list_segments, list_segments_by_coordinates
+import telraam_data.download as download
 
 
 def test_list_segments():
     # As of April 2020 there were more than 900 active segments.
-    segments = list_segments()
+    segments = download.list_segments()
+    print(type(segments[0]))
     assert len(segments) > 900
 
 
 def test_list_segments_by_coordinates():
     # As of April 2020 there are more than 30 active segments in Schaarbeek
-    segments = list_segments_by_coordinates(lat=50.867, lon=4.373, radius=2)
+    segments = download.list_segments_by_coordinates(lat=50.867, lon=4.373, radius=2)
     assert len(segments) > 30
     # 1003073114 should be one of them
     assert 1003073114 in segments
