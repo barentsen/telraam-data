@@ -1,22 +1,15 @@
-"""Functions to retrieve data from the Telraam API."""
 import datetime
-
 import pandas
 from haversine import haversine
 import pandas as pd
-import requests
 import os
 from tqdm.auto import tqdm
-from typing import List, Union, Dict
-
+from typing import List, Union, Optional
 from . import log
+import telraam_data.query as query_telraam
 
 
-TELRAAM_API_URL = "https://telraam-api.net/v1"
-ENVVAR_TELRAAM_API_TOKEN = os.environ.get("TELRAAM_API_TOKEN")
-
-
-def list_segments(api_token: str = ENVVAR_TELRAAM_API_TOKEN) -> List[int]:
+def list_segments(api_token: Optional[str] = None) -> List[int]:
     """Returns a list of all active Telraam segment IDs.
 
     Parameters
@@ -25,7 +18,7 @@ def list_segments(api_token: str = ENVVAR_TELRAAM_API_TOKEN) -> List[int]:
         Your personal Telraam API token.
         Defaults to the environment variable TELRAAM_API_TOKEN.
     """
-    js = _query_active_segments(api_token)
+    js = query_telraam.query_active_segments(api_token)
     return list(set([segment['properties']['id'] for segment in js['features']]))
 
 
@@ -33,7 +26,7 @@ def list_segments_by_coordinates(
         lat: float,
         lon: float,
         radius: float = 10,
-        api_token: str = ENVVAR_TELRAAM_API_TOKEN
+        api_token: Optional[str] = None
 ) -> List[int]:
     """Returns the segment IDs within `radius` kilometer from (lat, lon).
     
@@ -54,7 +47,7 @@ def list_segments_by_coordinates(
     segment_ids : list of int
         IDs of all Telraam segments located within the search radius.
     """
-    js = _query_active_segments(api_token)
+    js = query_telraam.query_active_segments(api_token)
     result = []
     for segment in js['features']:
         segment_lon, segment_lat = segment['geometry']['coordinates'][0][0]
@@ -68,7 +61,7 @@ def download_segment(
         segment_id: Union[str, List[str], int, List[int]],
         time_start: str = None,
         time_end: str = None,
-        api_token: str = ENVVAR_TELRAAM_API_TOKEN
+        api_token: Optional[str] = None
 ) -> pandas.DataFrame:
     """Returns traffic count data for one or more segments.
     
@@ -88,7 +81,7 @@ def download_segment(
         Defaults to the environment variable TELRAAM_API_TOKEN.
     """
     if segment_id == 'all':  # Retrieve ALL segments?
-        segment_id = _query_active_segments(api_token)
+        segment_id = query_telraam.query_active_segments(api_token)
     elif isinstance(segment_id, (str, int)):  # Ensure segment_id is iterable
         segment_id = [segment_id]
 
@@ -109,65 +102,11 @@ def download_segment(
     return pd.concat(data)
 
 
-def _check_response_health(response: requests.Response) -> None:
-    if response.status_code >= 400:
-        raise IOError(f"Query failed: {response.status_code} {response.reason}")
-
-
-def _query_active_segments(api_token: str) -> Dict:
-    """Returns information about all active segments.
-
-    Parameters
-    ----------
-    api_token: str
-        Your personal Telraam API token.
-    """
-    url = f"{TELRAAM_API_URL}/segments/active_minimal"
-    headers = {'X-Api-Key': api_token}
-    response = requests.get(url, headers=headers, data={})
-    _check_response_health(response)
-    return response.json()
-
-
-def _query_one_segment(
-        segment_id: str,
-        time_start: str,
-        time_end: str,
-        api_token: str
-) -> Dict:
-    """Returns traffic information for one segment.
-
-    Parameters
-    ----------
-    segment_id : str
-        Unique segment identifier (e.g. "1003073114").
-    time_start : str
-        Start time in "YYYY-MM-DD HH:MM:SSZ" format (e.g "2020-01-01 00:00:00Z").
-    time_end : str
-        End time in the same format as `time_start`.
-    api_token: str
-        Your personal Telraam API token.
-    """
-    url = f"{TELRAAM_API_URL}/reports/traffic"
-    headers = {'X-Api-Key': api_token}
-    payload = str({
-        "time_start": time_start,
-        "time_end": time_end,
-        "level": "segments",
-        "format": "per-hour",
-        "id": segment_id
-    })
-    log.debug(f"Querying {url} with data: {payload}")
-    response = requests.post(url, headers=headers, data=payload)
-    _check_response_health(response)
-    return response.json()
-
-
 def _download_one_segment(
         segment_id: str,
         time_start: str,
         time_end: str,
-        api_token: str
+        api_token: Optional[str] = None
 ) -> pandas.DataFrame:
     """Returns information about one segment.
 
@@ -182,7 +121,7 @@ def _download_one_segment(
     api_token: str
         Your personal Telraam API token.
     """
-    js = _query_one_segment(segment_id, time_start, time_end, api_token)
+    js = query_telraam.query_one_segment(segment_id, time_start, time_end, api_token)
     n_reports = len(js['report'])
     log.debug(f"Found {n_reports} reports.")
     if n_reports == 0:
