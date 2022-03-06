@@ -20,9 +20,14 @@ def query_active_segments(api_token: Optional[str] = ENVVAR_TELRAAM_API_TOKEN) -
     ----------
     api_token: str
         Your personal Telraam API token.
+
+    Returns
+    -------
+    response_json : Dict
+        A dictionary containing the database's response.
     """
     url = f"{TELRAAM_API_URL}/reports/traffic_snapshot"
-    headers = {'X-Api-Key': api_token}
+    headers = {'X-Api-Key': ENVVAR_TELRAAM_API_TOKEN if api_token is None else api_token}
     payload = str({
         "time": "live",
         "contents": "minimal",
@@ -52,9 +57,14 @@ def query_one_segment(
         End time in the same format as `time_start`.
     api_token: str
         Your personal Telraam API token.
+
+    Returns
+    -------
+    response_json : Dict
+        A dictionary containing the database's response.
     """
     url = f"{TELRAAM_API_URL}/reports/traffic"
-    headers = {'X-Api-Key': api_token}
+    headers = {'X-Api-Key': ENVVAR_TELRAAM_API_TOKEN if api_token is None else api_token}
     payload = str({
         "time_start": time_start,
         "time_end": time_end,
