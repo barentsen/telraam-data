@@ -39,6 +39,44 @@ def query_active_segments(api_token: Optional[str] = ENVVAR_TELRAAM_API_TOKEN) -
     return response.json()
 
 
+def query_active_segments_in_radius(
+        lat: float,
+        lon: float,
+        radius: float = 10,
+        api_token: Optional[str] = None
+) -> Dict:
+    """Returns information about all active segments in a circular region.
+
+    Parameters
+    ----------
+    lat : float
+        Latitude in degrees.
+    lon : float
+        Longitude in degrees.
+    radius : float
+        Search radius in kilometer.
+    api_token: str
+        Your personal Telraam API token.
+
+    Returns
+    -------
+    response_json : Dict
+        A dictionary containing the database's response.
+    """
+    url = f"{TELRAAM_API_URL}/reports/traffic_snapshot"
+    headers = {'X-Api-Key': ENVVAR_TELRAAM_API_TOKEN if api_token is None else api_token}
+    payload = str({
+        "time": "live",
+        "contents": "minimal",
+        "area": f"{lat},{lon},{radius}"
+    })
+    log.debug(f"Querying all active segments in a {radius}km radius at latitude {lat}° and longitude {lon}°"
+              f"from {url}.")
+    response = requests.post(url, headers=headers, data=payload)
+    check_response_health(response)
+    return response.json()
+
+
 def query_one_segment(
         segment_id: str,
         time_start: str,
