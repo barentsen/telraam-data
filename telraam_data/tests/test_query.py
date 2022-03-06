@@ -4,16 +4,32 @@ import random
 
 
 def test_query_active_segments():
-    segments = query.query_active_segments()
-    assert segments["status_code"] == 200
-    assert segments["message"] == "ok"
-    assert segments["type"] == "FeatureCollection"
-    num_segments = len(segments)
+    response = query.query_active_segments()
+    assert response["status_code"] == 200
+    assert response["message"] == "ok"
+    assert response["type"] == "FeatureCollection"
+    num_segments = len(response["features"])
     assert num_segments > 0
     idx = random.randrange(1, num_segments) - 1
-    assert segments["features"][idx]["type"] == "Feature"
-    assert segments["features"][idx]["geometry"]["type"] == "MultiLineString"
-    assert "properties" in segments["features"][idx].keys()
+    assert response["features"][idx]["type"] == "Feature"
+    assert response["features"][idx]["geometry"]["type"] == "MultiLineString"
+    assert "properties" in response["features"][idx].keys()
+
+
+def test_query_active_segments_in_radius():
+    # Choose a random segment from the database and use its coordinates
+    response = query.query_active_segments()
+    all_segments = response["features"]
+    segment_idx = random.randrange(1, len(all_segments)) - 1
+    segment_coordinates = all_segments[segment_idx]["geometry"]["coordinates"]
+    lat, lon = segment_coordinates[0][0]
+
+    # From that coordinate, search in a 1 km radius. There must be at least one device.
+    response = query.query_active_segments_in_radius(lat, lon, 1)
+    assert response["status_code"] == 200
+    assert response["message"] == "ok"
+    assert response["type"] == "FeatureCollection"
+    assert len(response["features"]) > 0
 
 
 def test_query_one_segment():
