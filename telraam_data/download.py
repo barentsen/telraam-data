@@ -1,8 +1,6 @@
 import datetime
 import pandas
-from haversine import haversine
 import pandas as pd
-import os
 from tqdm.auto import tqdm
 from typing import List, Union, Optional
 from . import log
@@ -17,9 +15,14 @@ def list_segments(api_token: Optional[str] = None) -> List[int]:
     api_token: str
         Your personal Telraam API token.
         Defaults to the environment variable TELRAAM_API_TOKEN.
+
+    Returns
+    -------
+    segment_ids : list of int
+        IDs of all Telraam segments.
     """
-    js = query_telraam.query_active_segments(api_token)
-    return list(set([segment['properties']['id'] for segment in js['features']]))
+    response = query_telraam.query_active_segments(api_token)
+    return [feature["properties"]["segment_id"] for feature in response["features"]]
 
 
 def list_segments_by_coordinates(
@@ -47,14 +50,8 @@ def list_segments_by_coordinates(
     segment_ids : list of int
         IDs of all Telraam segments located within the search radius.
     """
-    js = query_telraam.query_active_segments(api_token)
-    result = []
-    for segment in js['features']:
-        segment_lon, segment_lat = segment['geometry']['coordinates'][0][0]
-        distance_km = haversine((lat, lon), (segment_lat, segment_lon))
-        if distance_km < radius:
-            result.append(segment['properties']['id'])
-    return result
+    response = query_telraam.query_active_segments_in_radius(lat, lon, radius, api_token)
+    return [feature["properties"]["segment_id"] for feature in response["features"]]
 
 
 def download_segment(
