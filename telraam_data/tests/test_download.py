@@ -4,7 +4,6 @@ import telraam_data.download as download
 def test_list_segments():
     # As of April 2020 there were more than 900 active segments.
     segments = download.list_segments()
-    print(type(segments[0]))
     assert len(segments) > 900
 
 
