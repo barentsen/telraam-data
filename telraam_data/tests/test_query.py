@@ -22,10 +22,10 @@ def test_query_active_segments_in_radius():
     all_segments = response["features"]
     segment_idx = random.randrange(1, len(all_segments)) - 1
     segment_coordinates = all_segments[segment_idx]["geometry"]["coordinates"]
-    lat, lon = segment_coordinates[0][0]
+    lon, lat = segment_coordinates[0][0]
 
     # From that coordinate, search in a 1 km radius. There must be at least one device.
-    response = query.query_active_segments_in_radius(lat, lon, 1)
+    response = query.query_active_segments_in_radius(lon, lat, 1)
     assert response["status_code"] == 200
     assert response["message"] == "ok"
     assert response["type"] == "FeatureCollection"

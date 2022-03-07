@@ -26,8 +26,8 @@ def list_segments(api_token: Optional[str] = None) -> List[int]:
 
 
 def list_segments_by_coordinates(
-        lat: float,
         lon: float,
+        lat: float,
         radius: float = 10,
         api_token: Optional[str] = None
 ) -> List[int]:
@@ -35,10 +35,10 @@ def list_segments_by_coordinates(
     
     Parameters
     ----------
-    lat : float
-        Latitude in degrees.
     lon : float
         Longitude in degrees.
+    lat : float
+        Latitude in degrees.
     radius : float
         Search radius in kilometer.
     api_token: str
@@ -50,7 +50,7 @@ def list_segments_by_coordinates(
     segment_ids : list of int
         IDs of all Telraam segments located within the search radius.
     """
-    response = query_telraam.query_active_segments_in_radius(lat, lon, radius, api_token)
+    response = query_telraam.query_active_segments_in_radius(lon, lat, radius, api_token)
     return [feature["properties"]["segment_id"] for feature in response["features"]]
 
 

@@ -40,8 +40,8 @@ def query_active_segments(api_token: Optional[str] = ENVVAR_TELRAAM_API_TOKEN) -
 
 
 def query_active_segments_in_radius(
-        lat: float,
         lon: float,
+        lat: float,
         radius: float = 10,
         api_token: Optional[str] = None
 ) -> Dict:
@@ -49,10 +49,10 @@ def query_active_segments_in_radius(
 
     Parameters
     ----------
-    lat : float
-        Latitude in degrees.
     lon : float
         Longitude in degrees.
+    lat : float
+        Latitude in degrees.
     radius : float
         Search radius in kilometer.
     api_token: str
