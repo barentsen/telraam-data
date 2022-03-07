@@ -68,7 +68,7 @@ def query_active_segments_in_radius(
     payload = str({
         "time": "live",
         "contents": "minimal",
-        "area": f"{lat},{lon},{radius}"
+        "area": f"{lon},{lat},{radius}"
     })
     log.debug(f"Querying all active segments in a {radius}km radius at latitude {lat}° and longitude {lon}°"
               f"from {url}.")
