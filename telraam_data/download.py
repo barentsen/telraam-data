@@ -1,7 +1,7 @@
-import datetime
-import pandas
+import datetime as dt
 import pandas as pd
 from tqdm.auto import tqdm
+import pathlib as pl
 from typing import List, Union, Optional
 from . import log
 import telraam_data.query as query_telraam
@@ -54,25 +54,24 @@ def list_segments_by_coordinates(
     return [feature["properties"]["segment_id"] for feature in response["features"]]
 
 
-def download_segment(
+def download_segments(
         segment_id: Union[str, List[str], int, List[int]],
-        time_start: str = None,
-        time_end: str = None,
+        start_date: dt.date = dt.datetime.now().date() - dt.timedelta(weeks=1),
+        end_date: dt.date = dt.datetime.now().date(),
+        out_filepath: pl.Path = None,
         api_token: Optional[str] = None
-) -> pandas.DataFrame:
+) -> pd.DataFrame:
     """Returns traffic count data for one or more segments.
     
     Parameters
     ----------
     segment_id : str, list of str
-        Unique segment identifier (e.g. "1003073114").
+        Unique segment identifier (e.g. 1003073114).
         Use `segment_id="all"` to select all segments.
-    time_start : str
-        Start time in "YYYY-MM-DD HH:MM:SSZ" format (e.g "2020-01-01 00:00:00Z").
-        Defaults to midnight one week ago.
-    time_end : str
-        End time in the same format as `time_start`.
-        Defaults to mignight tonight.
+    start_date : datetime.date
+        Start date of the desired data. Defaults to one week ago.
+    end_date : datetime.date
+        End date of the desired data. Defaults to today.
     api_token: str
         Your personal Telraam API token.
         Defaults to the environment variable TELRAAM_API_TOKEN.
@@ -82,48 +81,62 @@ def download_segment(
     elif isinstance(segment_id, (str, int)):  # Ensure segment_id is iterable
         segment_id = [segment_id]
 
-    # Set defaults for time_start and time_end
-    if time_start is None:  # Defaults to one week ago
-        time_start = (datetime.datetime.now() - datetime.timedelta(weeks=1)) \
-                        .strftime("%Y-%m-%d 00:00:00Z")
-    if time_end is None:  # Defaults to midnight tonight
-        time_end = datetime.datetime.now().strftime("%Y-%m-%d 23:59:59Z")
-
     # Load data frames segment-by-segment
-    data = []
-    for segid in tqdm(segment_id, desc="Downloading Telraam segments"):
+    data_chunks = []
+    for segid in tqdm(segment_id, desc=f"Downloading Telraam segment {segment_id}"):
         try:
-            data.append(_download_one_segment(segid, time_start, time_end, api_token))
+            data_chunks.append(download_one_segment(segid, start_date, end_date, api_token))
         except IOError as e:
             log.error(e)
-    return pd.concat(data)
+
+    # Merge data
+    df = pd.DataFrame()
+    for chunk in data_chunks:
+        df.join(chunk, how='outer', rsuffix=f'_{chunk.segment_id[0]}')
+
+    if out_filepath is not None:
+        path = pl.Path(out_filepath)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(out_filepath)
+
+    return df
 
 
-def _download_one_segment(
+def download_one_segment(
         segment_id: str,
-        time_start: str,
-        time_end: str,
+        start_date: dt.date = dt.datetime.now().date() - dt.timedelta(weeks=1),
+        end_date: dt.date = dt.datetime.now().date(),
+        out_filepath: pl.Path = None,
         api_token: Optional[str] = None
-) -> pandas.DataFrame:
+) -> pd.DataFrame:
     """Returns information about one segment.
 
     Parameters
     ----------
     segment_id : str
         Unique segment identifier (e.g. "1003073114").
-    time_start : str
-        Start time in "YYYY-MM-DD HH:MM:SSZ" format (e.g "2020-01-01 00:00:00Z").
-    time_end : str
-        End time in the same format as `time_start`.
+    start_date : datetime.date
+        Start date of the desired data. Defaults to one week ago.
+    end_date : datetime.date
+        End date of the desired data. Defaults to today.
+    out_filepath: pathlib.Path
+        Download destination path. Defaults to None (data is not stored by default).
     api_token: str
         Your personal Telraam API token.
     """
-    js = query_telraam.query_one_segment(segment_id, time_start, time_end, api_token)
-    n_reports = len(js['report'])
-    log.debug(f"Found {n_reports} reports.")
-    if n_reports == 0:
+    result = query_telraam.query_one_segment(segment_id, start_date, end_date, api_token)
+    if result is None:
         return None
-    df = pd.DataFrame.from_dict(js['report'])
-    # Remove timezone info using `tz_localize(None)` to support `to_excel()`
+
+    # Convert to DataFrame
+    df = pd.DataFrame.from_dict(result['report'])
     df.date = pd.to_datetime(df.date).dt.tz_localize(None)
+    df.set_index("date", inplace=True)
+
+    # Write file
+    if out_filepath is not None:
+        path = pl.Path(out_filepath)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(out_filepath)
+
     return df
