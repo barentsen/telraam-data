@@ -8,8 +8,12 @@ TELRAAM_API_URL = "https://telraam-api.net/v1"
 ENVVAR_TELRAAM_API_TOKEN = os.environ.get("TELRAAM_API_TOKEN")
 
 
+def _response_is_healthy(response: requests.Response) -> bool:
+    return response.status_code == 200
+
+
 def check_response_health(response: requests.Response) -> None:
-    if response.status_code >= 400:
+    if not _response_is_healthy(response):
         raise IOError(f"Query failed: {response.status_code} {response.reason}")
 
 
