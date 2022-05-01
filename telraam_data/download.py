@@ -28,7 +28,7 @@ def list_segments(api_token: Optional[str] = None) -> List[int]:
 def list_segments_by_coordinates(
         lon: float,
         lat: float,
-        radius: float = 10,
+        radius: float,
         api_token: Optional[str] = None
 ) -> List[int]:
     """Returns the segment IDs within `radius` kilometer from (lat, lon).
