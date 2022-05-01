@@ -1,5 +1,5 @@
 import telraam_data.query as query
-import datetime
+import datetime as dt
 import random
 
 
@@ -41,9 +41,9 @@ def test_query_one_segment():
     segment_last_time = segment["properties"]["last_data_package"]
 
     # Query that segment for the last live day
-    time2 = datetime.datetime.strptime(segment_last_time, "%Y-%m-%d %H:%M:%S.%f%z")
-    time1 = time2 - datetime.timedelta(days=1)
-    response = query.query_one_segment(segment_id, str(time1), str(time2))
+    end_date = dt.datetime.fromisoformat(segment_last_time).date()
+    start_date = end_date - dt.timedelta(days=1)
+    response = query.query_one_segment(segment_id, start_date, end_date)
 
     assert response["status_code"] == 200
     assert response["message"] == "ok"
