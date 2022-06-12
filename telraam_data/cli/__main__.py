@@ -3,6 +3,14 @@ from telraam_data.query import _response_is_healthy, TELRAAM_API_URL, ENVVAR_TEL
 import click
 import requests
 import telraam_data
+import sys
+from enum import Enum
+
+
+class ExitCode(Enum):
+    SUCCESS = 0
+    SRV_ERROR = 1  # Server not reachable / client rejected / invalid server response
+    CLI_ERROR = 2  # Invalid user input to command-line interface
 
 
 @click.group()
@@ -34,17 +42,18 @@ def cli():
               default=None,  # Path defaults to generated string during runtime
               help="The path to the file where the data shall be stored."
               )
-def download(segment_id, start_date, end_date, api_key, output_path):
+@click.pass_context
+def download(ctx, segment_id, start_date, end_date, api_key, output_path):
     """Downloads and stores Telraam data from a specified road segment.
     """
     if api_key is None:
         click.echo("An API key is required.\nAborting.")
-        return
+        return ExitCode.CLI_ERROR
 
     if start_date is not None:
         if start_date > end_date:
             click.echo("The start date must be earlier than the end date.\nAborting.")
-            return
+            return ExitCode.CLI_ERROR
 
     url = TELRAAM_API_URL + "/cameras/segment/" + segment_id
     headers = {'X-Api-Key': api_key}
@@ -52,14 +61,14 @@ def download(segment_id, start_date, end_date, api_key, output_path):
 
     if not _response_is_healthy(response):
         if response.status_code == 403:
-            click.echo("API key was rejected by the Telraam server.\nAborting")
+            click.echo("API key was rejected by the Telraam server.\nAborting.")
         else:
             click.echo("Couldn't reach url " + url + ".\nAborting.")
-        return
+        sys.exit(ExitCode.SRV_ERROR)
 
     if len(response.json()["camera"]) == 0:
         click.echo("No segment with id " + segment_id + " found.\nAborting.")
-        return
+        sys.exit(ExitCode.SRV_ERROR)
 
     if start_date is None:
         dates = [datetime.strptime(cam["first_data_package"], "%Y-%m-%dT%H:%M:%S.%fZ") for cam
@@ -76,12 +85,18 @@ def download(segment_id, start_date, end_date, api_key, output_path):
     click.echo(f"Start: {start_date.date()}, End: {end_date.date()} ")
     click.echo(f"Output path: {output_path}")
 
-    telraam_data.download_one_segment(
+    df = telraam_data.download_one_segment(
         segment_id=segment_id,
         start_date=start_date,
         end_date=end_date,
         out_filepath=output_path,
         api_token=api_key)
+
+    if df is None:
+        click.echo("An unexpected error happened.\nAborting.")
+        sys.exit(ExitCode.SRV_ERROR)
+
+    return ExitCode.SUCCESS
 
 
 cli.add_command(download)
