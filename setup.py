@@ -43,4 +43,8 @@ setup(name='telraam-data',
           "Programming Language :: Python",
           "Intended Audience :: Science/Research",
           ],
-      )
+      entry_points={
+          'console_scripts': [
+              'telraam-data-manager = telraam_data.cli.__main__:cli'
+          ]
+      },)
