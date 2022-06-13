@@ -72,6 +72,8 @@ def download_segments(
         Start date of the desired data. Defaults to one week ago.
     end_date : datetime.date
         End date of the desired data. Defaults to today.
+    out_filepath : pathlib.Path
+        Download destination path. Defaults to None (data is not stored by default).
     api_token: str
         Your personal Telraam API token.
         Defaults to the environment variable TELRAAM_API_TOKEN.
