@@ -19,13 +19,13 @@ exec(open('telraam_data/version.py').read())
 with open('requirements.txt') as f:
     install_requires = f.read().splitlines()
 # 2. What dependencies required to run the unit tests?
-tests_require = ['pytest']
+tests_require = ['pytest', 'random']
 
 
 setup(name='telraam-data',
       version=__version__,
       description="A friendly package to download traffic count data from Telraam.net.",
-      long_description=open('README.rst').read(),
+      long_description=open('README.md').read(),
       author='Geert Barentsen',
       author_email='geert@barentsen.be',
       url='https://github.com/barentsen/telraam-data',
@@ -43,4 +43,8 @@ setup(name='telraam-data',
           "Programming Language :: Python",
           "Intended Audience :: Science/Research",
           ],
-      )
+      entry_points={
+          'console_scripts': [
+              'telraam-data-manager = telraam_data.cli.__main__:cli'
+          ]
+      }, )
